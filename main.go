@@ -1,7 +1,7 @@
 package main
 
 import (
-	"email-sequence/internal/data/sequence"
+	"email-sequence/internal/data"
 	"email-sequence/internal/handler"
 	"email-sequence/internal/service"
 	"fmt"
@@ -28,13 +28,19 @@ func main() {
 		log.Fatal(err)
 	}
 
-	sequenceRepo := sequence.NewSequenceDataAccess(db)
+	sequenceRepo := data.NewSequenceDataAccess(db)
 	sequenceService := service.NewSequenceService(sequenceRepo)
 	sequenceHandler := handler.NewSequenceHandler(sequenceService)
 
+	stepRepo := data.NewStepDataAccess(db)
+	stepService := service.NewStepService(stepRepo)
+	stepHandler := handler.NewStepHandler(stepService)
+
 	r := gin.Default()
 	r.POST("/sequences", sequenceHandler.CreateSequence)
-	// Register other routes
+	r.PUT("/sequences/:id/steps/:stepId", stepHandler.UpdateStep)
+	r.DELETE("/sequences/:id/steps/:stepId", stepHandler.DeleteStep)
+	r.PATCH("/sequences/:id/tracking", sequenceHandler.UpdateSequenceTracking)
 
 	if err := r.Run(); err != nil {
 		log.Fatal(err)

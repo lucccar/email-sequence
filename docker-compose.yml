@@ -13,6 +13,7 @@ services:
       - DB_NAME=mydatabase
     depends_on:
       - postgres
+    entrypoint: ["/app/wait-for-it.sh", "postgres:5432", "--", "/app/main"]
 
   postgres:
     image: postgres:15-alpine
@@ -24,6 +25,14 @@ services:
       - pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+
+  migrations:
+    image: golang:1.23.0-alpine
+    command: ["migrate", "-path", "/migrations", "-database", "postgres://postgres:secret@postgres:5432/mydatabase?sslmode=disable", "up"]
+    volumes:
+      - ./migrations:/migrations
+    depends_on:
+      - postgres
 
 volumes:
   pgdata:

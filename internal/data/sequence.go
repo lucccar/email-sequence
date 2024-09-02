@@ -1,4 +1,4 @@
-package sequence
+package data
 
 import (
 	"email-sequence/internal/model"
@@ -11,9 +11,7 @@ type SequenceDataAccess interface {
 	UpdateSequence(sequence *model.Sequence) error
 	DeleteSequence(sequenceID int) error
 	GetSequence(sequenceID int) (*model.Sequence, error)
-	CreateStep(step *model.SequenceStep) error
-	UpdateStep(step *model.SequenceStep) error
-	DeleteStep(stepID int) error
+	UpdateSequenceTracking(sequenceID string, openTracking, clickTracking bool) (*model.Sequence, error)
 }
 
 type sequenceDataAccess struct {
@@ -53,17 +51,24 @@ func (r *sequenceDataAccess) GetSequence(sequenceID int) (*model.Sequence, error
 	return &sequence, nil
 }
 
-// CreateStep adds a new step to an existing sequence
-func (r *sequenceDataAccess) CreateStep(step *model.SequenceStep) error {
-	return r.db.Create(step).Error
-}
+// UpdateSequenceTracking updates the tracking settings for a sequence in the database
+func (r *sequenceDataAccess) UpdateSequenceTracking(sequenceID string, openTracking, clickTracking bool) (*model.Sequence, error) {
+	var sequence model.Sequence
 
-// UpdateStep updates an existing step in a sequence
-func (r *sequenceDataAccess) UpdateStep(step *model.SequenceStep) error {
-	return r.db.Save(step).Error
-}
+	// Update the sequence tracking fields
+	if err := r.db.Model(&sequence).Where("id = ?", sequenceID).
+		Updates(map[string]interface{}{
+			"open_tracking_enabled":  openTracking,
+			"click_tracking_enabled": clickTracking,
+		}).Error; err != nil {
+		return nil, err
+	}
 
-// DeleteStep deletes a step from a sequence
-func (r *sequenceDataAccess) DeleteStep(stepID int) error {
-	return r.db.Delete(&model.SequenceStep{}, stepID).Error
+	// Retrieve the updated sequence
+	if err := r.db.Where("id = ?", sequenceID).First(&sequence).Error; err != nil {
+		return nil, err
+	}
+
+	return &sequence, nil
+
 }
