@@ -38,7 +38,6 @@ type SequenceTrackingUpdateInput struct {
 	ClickTrackingEnabled bool `json:"click_tracking_enabled"`
 }
 
-// UpdateSequenceTracking updates the open and click tracking settings of a sequence
 func (h *SequenceHandler) UpdateSequenceTracking(c *gin.Context) {
 	sequenceID := c.Param("id")
 
@@ -58,10 +57,9 @@ func (h *SequenceHandler) UpdateSequenceTracking(c *gin.Context) {
 }
 
 func (h *SequenceHandler) GetSequence(c *gin.Context) {
-	// Get the sequence ID from the request URL
+
 	sequenceID := c.Param("id")
 
-	// Call the service to get the sequence by ID
 	sequence, err := h.service.GetSequence(sequenceID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

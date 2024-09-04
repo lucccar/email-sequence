@@ -8,7 +8,7 @@ import (
 
 type SequenceService interface {
 	CreateSequence(sequence *model.Sequence) (*model.Sequence, error)
-	// UpdateSequence(sequence *model.Sequence) error
+
 	GetSequence(sequenceID string) (*model.Sequence, error)
 	GetSequences() ([]model.Sequence, error)
 	UpdateSequenceTracking(sequenceID string, openTracking, clickTracking bool) (*model.Sequence, error)
@@ -22,15 +22,10 @@ func NewSequenceService(repo data.SequenceDataAccess) SequenceService {
 	return &sequenceService{repo}
 }
 
-// CreateSequence creates a new sequence with steps
 func (s *sequenceService) CreateSequence(sequence *model.Sequence) (*model.Sequence, error) {
 	fmt.Println(sequence)
 	return s.repo.CreateSequence(sequence)
 }
-
-// func (s *sequenceService) UpdateSequence(sequence *model.Sequence) error {
-// 	return s.repo.UpdateSequence(sequence)
-// }
 
 func (s *sequenceService) UpdateSequenceTracking(sequenceID string, openTracking, clickTracking bool) (*model.Sequence, error) {
 	return s.repo.UpdateSequenceTracking(sequenceID, openTracking, clickTracking)

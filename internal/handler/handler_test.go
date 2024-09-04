@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mitchellh/mapstructure"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/postgres"
@@ -26,13 +27,12 @@ var seqHandler *SequenceHandler
 
 func setup() {
 	var err error
-	dsn := "host=localhost user=postgres password=secret dbname=testdatabase port=5433 sslmode=disable"
+	dsn := "host=localhost user=postgres password=secret dbname=mytestdatabase port=5432 sslmode=disable"
 	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
 
-	// Migrate database schema for testing
 	err = db.AutoMigrate(&model.Sequence{}, &model.SequenceStep{})
 	if err != nil {
 		panic("failed to migrate database")
@@ -55,7 +55,6 @@ func TestCreateSequence(t *testing.T) {
 	r := gin.Default()
 	r.POST("/sequences", seqHandler.CreateSequence)
 
-	// Define test data
 	sequence := map[string]interface{}{
 		"name":                   "Test Sequence",
 		"open_tracking_enabled":  true,
@@ -83,14 +82,13 @@ func TestCreateSequence(t *testing.T) {
 	var response map[string]interface{}
 	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &response))
 	assert.Equal(t, "Test Sequence", response["name"])
-	assert.Equal(t, float64(2), len(response["steps"].([]interface{})))
+	assert.Equal(t, 2, len(response["steps"].([]interface{})))
 }
 
 func TestGetSequence(t *testing.T) {
 	setup()
 	defer dropDBs()
 
-	// Insert test data
 	seq := model.Sequence{
 		Name:                 "Test Sequence",
 		OpenTrackingEnabled:  true,
@@ -114,14 +112,21 @@ func TestGetSequence(t *testing.T) {
 	var response map[string]interface{}
 	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &response))
 	assert.Equal(t, "Test Sequence", response["name"])
-	assert.Equal(t, float64(2), len(response["steps"].([]interface{})))
+	assert.Equal(t, 2, len(response["steps"].([]interface{})))
+
+	var steps []model.SequenceStep
+
+	if rawSteps, ok := response["steps"].([]interface{}); ok {
+		mapstructure.Decode(rawSteps, &steps)
+	}
+	assert.Equal(t, seq.Steps[1].Subject, steps[1].Subject)
+	assert.Equal(t, seq.Steps[1].Content, steps[1].Content)
 }
 
 func TestGetSequences(t *testing.T) {
 	setup()
 	defer dropDBs()
 
-	// Insert test data
 	seq1 := model.Sequence{
 		Name:                 "Test Sequence 1",
 		OpenTrackingEnabled:  true,
@@ -153,4 +158,38 @@ func TestGetSequences(t *testing.T) {
 	var response []map[string]interface{}
 	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &response))
 	assert.Equal(t, 2, len(response))
+}
+
+func TestUpdateSequenceTracking(t *testing.T) {
+	setup()
+	defer dropDBs()
+
+	sequence := model.Sequence{
+		Name:                 "Test Sequence for Update Tracking 55",
+		OpenTrackingEnabled:  false,
+		ClickTrackingEnabled: false,
+	}
+	db.Create(&sequence)
+
+	payload := map[string]bool{
+		"open_tracking_enabled":  true,
+		"click_tracking_enabled": true,
+	}
+	jsonPayload, err := json.Marshal(payload)
+	assert.Nil(t, err)
+
+	r := gin.Default()
+	r.PATCH("/sequences/:id/tracking", seqHandler.UpdateSequenceTracking)
+
+	req, _ := http.NewRequest("PATCH", "/sequences/"+strconv.Itoa(sequence.ID)+"/tracking", bytes.NewBuffer(jsonPayload))
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var updatedSequence model.Sequence
+	db.First(&updatedSequence, sequence.ID)
+
+	assert.True(t, updatedSequence.OpenTrackingEnabled)
+	assert.True(t, updatedSequence.ClickTrackingEnabled)
 }

@@ -31,14 +31,12 @@ func (h *StepHandler) UpdateStep(c *gin.Context) {
 		return
 	}
 
-	// Fetch the existing step
 	step, err := h.service.GetStep(sequenceID, stepID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Update only the fields provided in the input
 	if input.Subject != nil {
 		step.Subject = *input.Subject
 	}
@@ -46,7 +44,6 @@ func (h *StepHandler) UpdateStep(c *gin.Context) {
 		step.Content = *input.Content
 	}
 
-	// Save the updated step
 	updatedStep, err := h.service.UpdateStep(sequenceID, stepID, step)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -57,7 +54,6 @@ func (h *StepHandler) UpdateStep(c *gin.Context) {
 
 }
 
-// DeleteSequenceStep deletes a specific sequence step
 func (h *StepHandler) DeleteStep(c *gin.Context) {
 	sequenceID := c.Param("id")
 	stepID := c.Param("stepId")
