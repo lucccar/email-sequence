@@ -22,6 +22,9 @@ func (h *SequenceHandler) CreateSequence(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	for i := range sequence.Steps {
+		sequence.Steps[i].StepOrder = i + 1
+	}
 	if err := h.service.CreateSequence(&sequence); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -51,4 +54,34 @@ func (h *SequenceHandler) UpdateSequenceTracking(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, updatedSequence)
+}
+
+func (h *SequenceHandler) GetSequence(c *gin.Context) {
+	// Get the sequence ID from the request URL
+	sequenceID := c.Param("id")
+
+	// Call the service to get the sequence by ID
+	sequence, err := h.service.GetSequence(sequenceID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if sequence == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Sequence not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, sequence)
+}
+
+func (h *SequenceHandler) GetSequences(c *gin.Context) {
+	sequences, err := h.service.GetSequences()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, sequences)
+
 }

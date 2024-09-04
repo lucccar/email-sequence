@@ -38,6 +38,8 @@ func main() {
 
 	r := gin.Default()
 	r.POST("/sequences", sequenceHandler.CreateSequence)
+	r.GET("/sequences/:id", sequenceHandler.GetSequence)
+	r.GET("/sequences/", sequenceHandler.GetSequences)
 	r.PUT("/sequences/:id/steps/:stepId", stepHandler.UpdateStep)
 	r.DELETE("/sequences/:id/steps/:stepId", stepHandler.DeleteStep)
 	r.PATCH("/sequences/:id/tracking", sequenceHandler.UpdateSequenceTracking)

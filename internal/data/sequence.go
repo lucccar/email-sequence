@@ -9,8 +9,9 @@ import (
 type SequenceDataAccess interface {
 	CreateSequence(sequence *model.Sequence) error
 	UpdateSequence(sequence *model.Sequence) error
-	DeleteSequence(sequenceID int) error
-	GetSequence(sequenceID int) (*model.Sequence, error)
+	// DeleteSequence(sequenceID string) error
+	GetSequence(sequenceID string) (*model.Sequence, error)
+	GetSequences() ([]model.Sequence, error)
 	UpdateSequenceTracking(sequenceID string, openTracking, clickTracking bool) (*model.Sequence, error)
 }
 
@@ -43,12 +44,23 @@ func (r *sequenceDataAccess) DeleteSequence(sequenceID int) error {
 }
 
 // GetSequence retrieves a sequence and its associated steps from the database
-func (r *sequenceDataAccess) GetSequence(sequenceID int) (*model.Sequence, error) {
+func (r *sequenceDataAccess) GetSequence(sequenceID string) (*model.Sequence, error) {
 	var sequence model.Sequence
 	if err := r.db.Preload("Steps").First(&sequence, sequenceID).Error; err != nil {
 		return nil, err
 	}
 	return &sequence, nil
+}
+
+func (r *sequenceDataAccess) GetSequences() ([]model.Sequence, error) {
+	var sequences []model.Sequence
+
+	// Query the database to find all sequences and preload the related steps
+	if err := r.db.Preload("Steps").Find(&sequences).Error; err != nil {
+		return nil, err
+	}
+
+	return sequences, nil
 }
 
 // UpdateSequenceTracking updates the tracking settings for a sequence in the database

@@ -20,8 +20,8 @@ func TestCreateSequence(t *testing.T) {
 		OpenTrackingEnabled:  true,
 		ClickTrackingEnabled: true,
 		Steps: []model.SequenceStep{
-			{Subject: "Step 1", Content: "Content for Step 1", Order: 1},
-			{Subject: "Step 2", Content: "Content for Step 2", Order: 2},
+			{Subject: "Step 1", Content: "Content for Step 1", StepOrder: 1},
+			{Subject: "Step 2", Content: "Content for Step 2", StepOrder: 2},
 		},
 	}
 
