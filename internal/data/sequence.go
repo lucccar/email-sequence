@@ -7,8 +7,8 @@ import (
 )
 
 type SequenceDataAccess interface {
-	CreateSequence(sequence *model.Sequence) error
-	UpdateSequence(sequence *model.Sequence) error
+	CreateSequence(sequence *model.Sequence) (*model.Sequence, error)
+	// UpdateSequence(sequence *model.Sequence) error
 	// DeleteSequence(sequenceID string) error
 	GetSequence(sequenceID string) (*model.Sequence, error)
 	GetSequences() ([]model.Sequence, error)
@@ -24,14 +24,19 @@ func NewSequenceDataAccess(db *gorm.DB) SequenceDataAccess {
 }
 
 // CreateSequence inserts a new sequence into the database
-func (r *sequenceDataAccess) CreateSequence(sequence *model.Sequence) error {
-	return r.db.Create(sequence).Error
+func (r *sequenceDataAccess) CreateSequence(sequence *model.Sequence) (*model.Sequence, error) {
+	result := r.db.Create(sequence)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return sequence, nil
 }
 
-// UpdateSequence updates an existing sequence in the database
-func (r *sequenceDataAccess) UpdateSequence(sequence *model.Sequence) error {
-	return r.db.Save(sequence).Error
-}
+// // UpdateSequence updates an existing sequence in the database
+// func (r *sequenceDataAccess) UpdateSequence(sequence *model.Sequence) error {
+// 	return r.db.Save(sequence).Error
+// }
 
 // DeleteSequence deletes a sequence and its associated steps from the database
 func (r *sequenceDataAccess) DeleteSequence(sequenceID int) error {

@@ -41,4 +41,9 @@ clean: remove clear-volumes
 # Build, run, remove containers, and clear volumes (full workflow)
 run: all clean
 
+test: 
+	@echo "Starting tests..."
+	./setup-test-db.sh
+
+
 .PHONY: all build up remove clear-volumes clean run

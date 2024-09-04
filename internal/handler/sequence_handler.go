@@ -25,11 +25,12 @@ func (h *SequenceHandler) CreateSequence(c *gin.Context) {
 	for i := range sequence.Steps {
 		sequence.Steps[i].StepOrder = i + 1
 	}
-	if err := h.service.CreateSequence(&sequence); err != nil {
+	insertedSequence, err := h.service.CreateSequence(&sequence)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, sequence)
+	c.JSON(http.StatusOK, insertedSequence)
 }
 
 type SequenceTrackingUpdateInput struct {
