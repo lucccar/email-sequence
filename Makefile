@@ -20,15 +20,20 @@ remove:
 	docker compose -f $(DOCKER_COMPOSE_FILE) down
 
 
-destroy:
+clear-images:
 	@echo "Destroying images..."
 	docker system prune -a
 
+migrate:
+	@echo "Running migrations..."
+	docker-compose run migrations
 
 # Clear all Docker volumes
 clear-volumes:
 	@echo "Removing all Docker volumes..."
 	docker volume prune -f
+
+destroy: clear-volumes clear-images
 
 # Full cleanup: remove containers and clear volumes
 clean: remove clear-volumes
